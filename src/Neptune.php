@@ -1,7 +1,7 @@
 <?php
 namespace Teurons\Neptune;
 
-use Illuminate\Support\Facades\Http;
+use Curl\Curl;
 use Log;
 
 class Neptune
@@ -12,22 +12,43 @@ class Neptune
     public $payload;
     public $recipients;
 
-    public function __construct($payload = [], $recipients = [])
+    const DEFAULT_API_BASE = 'https://api.teurons.com/neptune';
+    const EDGE_API_BASE = 'https://edge.teurons.com/neptune';
+
+    public function __construct()
     {
-        $this->client = Http::withHeaders([
-            'Accept' => 'application/json',
-            'Authorization' => 'Bearer '.config('neptune.token')
-        ]);
+        // $this->client = Http::withHeaders([
+        //     'Accept' => 'application/json',
+        //     'Authorization' => 'Bearer '.config('neptune.token')
+        // ]);
 
-        $this->envrionmentUUID =  config('neptune.env');
+        // $this->envrionmentUUID =  config('neptune.env');
 
-        $this->createEvent = config('neptune.endpoint')."/api/teams/".config('neptune.team')."/events";
-        $this->getAppNotificatiosUrl = config('neptune.endpoint')."/api/teams/".config('neptune.team')."/app-notifications";
-        $this->readAppNotificatiosUrl = config('neptune.endpoint')."/api/teams/".config('neptune.team')."/app-notifications/read";
+        // $this->createEvent = config('neptune.endpoint')."/api/teams/".config('neptune.team')."/events";
+        // $this->getAppNotificatiosUrl = config('neptune.endpoint')."/api/teams/".config('neptune.team')."/app-notifications";
+        // $this->readAppNotificatiosUrl = config('neptune.endpoint')."/api/teams/".config('neptune.team')."/app-notifications/read";
         
 
-        $this->payload = $payload;
-        $this->recipients = $recipients;
+        // $this->payload = $payload;
+        // $this->recipients = $recipients;
+    }
+
+    public function fetchEnvironments()
+    {
+
+        $curl = new Curl();
+        $curl->setHeader('Accept', 'application/json');
+        $curl->setHeader('Authorization', 'Bearer '.config('neptune.token'));
+        $curl->get(self::DEFAULT_API_BASE."/environments");
+
+
+        if ($curl->error) {
+            echo 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage . "\n";
+        } else {
+            echo 'Response:' . "\n";
+            var_dump($curl->response);
+        }
+
     }
 
 
@@ -36,53 +57,41 @@ class Neptune
      *
      * @return void
      */
-    public function fire($notificationIdentifier, $identifier = "slug")
+    public function ingest($payload)
     {
-        // Log::info("Fire");
 
-        $body = [
-            'environment_uuid' => $this->envrionmentUUID,
-            'payload' => $this->payload,
-            'recipients' => $this->recipients,
+        $finalPayload =  [
+            'environment' => config('neptune.env'),
+            'api_token' => config('neptune.token'),
+            'version' => '1'
         ];
 
-        if($identifier == 'uuid'){
-            $body['notification_uuid'] = $notificationIdentifier;
+        $finalPayload = array_merge($payload, $finalPayload);
+
+        $curl = new Curl();
+        $curl->setHeader('Content-Type', 'application/json');
+        $curl->post(self::EDGE_API_BASE."/events/ingest", $finalPayload);
+
+
+        if ($curl->error) {
+            // echo 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage . "\n";
+        } else {
+            // echo 'Response:' . "\n";
+            // var_dump($curl->response);
         }
 
-        if($identifier == 'slug'){
-            $body['notification_slug'] = $notificationIdentifier;
-        }
+        return $curl->response;
 
-
-        // Log::info($body);
-
-        $response = $this->client->post($this->createEvent, $body);
-
-        $jsonResponse = $response->json();
-
-        // Log::info($jsonResponse);
-
-        return $jsonResponse;
     }
-
 
     public function getAppNotifications()
     {
-        $response = $this->client->get($this->getAppNotificatiosUrl, $this->payload);
 
-        $jsonResponse = $response->json();
-
-        return $jsonResponse;
     }
 
     public function readAppNotifications()
     {
-        $response = $this->client->post($this->readAppNotificatiosUrl, $this->payload);
 
-        $jsonResponse = $response->json();
-
-        return $jsonResponse;
     }
 
 }
