@@ -1,10 +1,10 @@
 <?php
 
-namespace Betalectic\Neptune;
+namespace Teurons\Neptune;
 
 use Illuminate\Notifications\Notification;
 use Log;
-use Betalectic\Neptune\Neptune;
+use Teurons\Neptune\Neptune;
 
 class NeptuneChannel
 {

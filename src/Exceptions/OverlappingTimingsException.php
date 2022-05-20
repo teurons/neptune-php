@@ -1,6 +1,6 @@
 <?php
 
-namespace Betalectic\Neptune\Exceptions;
+namespace Teurons\Neptune\Exceptions;
 
 use Exception as BaseException;
 

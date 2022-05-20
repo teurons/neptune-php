@@ -1,6 +1,6 @@
 <?php
 
-namespace Betalectic\Neptune;
+namespace Teurons\Neptune;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Foundation\Application as LaravelApplication;

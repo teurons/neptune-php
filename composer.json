@@ -21,12 +21,12 @@
   },
   "autoload": {
     "psr-4": {
-      "Betalectic\\Neptune\\": "src"
+      "Teurons\\Neptune\\": "src"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Betalectic\\Neptune\\Test\\": "tests"
+      "Teurons\\Neptune\\Test\\": "tests"
     }
   },
   "scripts": {
@@ -38,7 +38,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Betalectic\\Neptune\\NeptuneServiceProvider"
+        "Teurons\\Neptune\\NeptuneServiceProvider"
       ]
     }
   }
