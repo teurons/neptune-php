@@ -6,31 +6,12 @@ use Log;
 
 class Neptune
 {
-    public $client;
-    public $envrionmentUUID;
-    public $createEvent;
-    public $payload;
-    public $recipients;
-
     const DEFAULT_API_BASE = 'https://api.teurons.com/neptune';
     const EDGE_API_BASE = 'https://edge.teurons.com/neptune';
 
     public function __construct()
     {
-        // $this->client = Http::withHeaders([
-        //     'Accept' => 'application/json',
-        //     'Authorization' => 'Bearer '.config('neptune.token')
-        // ]);
 
-        // $this->envrionmentUUID =  config('neptune.env');
-
-        // $this->createEvent = config('neptune.endpoint')."/api/teams/".config('neptune.team')."/events";
-        // $this->getAppNotificatiosUrl = config('neptune.endpoint')."/api/teams/".config('neptune.team')."/app-notifications";
-        // $this->readAppNotificatiosUrl = config('neptune.endpoint')."/api/teams/".config('neptune.team')."/app-notifications/read";
-        
-
-        // $this->payload = $payload;
-        // $this->recipients = $recipients;
     }
 
     public function fetchEnvironments()
@@ -48,7 +29,6 @@ class Neptune
             echo 'Response:' . "\n";
             var_dump($curl->response);
         }
-
     }
 
 
@@ -57,16 +37,18 @@ class Neptune
      *
      * @return void
      */
-    public function ingest($payload)
+    public function fire($eventType, $data, $payload)
     {
 
         $finalPayload =  [
+            'event_type' => $eventType,
             'environment' => config('neptune.env'),
             'api_token' => config('neptune.token'),
-            'version' => '1'
+            'version' => '1',
+            'data' => $data,
         ];
 
-        $finalPayload = array_merge($payload, $finalPayload);
+        $finalPayload = array_merge($payload,  $finalPayload);
 
         $curl = new Curl();
         $curl->setHeader('Content-Type', 'application/json');
@@ -84,13 +66,67 @@ class Neptune
 
     }
 
-    public function getAppNotifications()
+    public function appNotificationsGet($userId, $overrideMeta = [])
     {
 
+        $meta = array(
+            'per_page' => '10',
+            'page' => '1',
+            'sort_column' => 'notification_deliveries*created_at',
+            'sort_order' => "desc",
+            "type" => "unread"
+        );
+
+        $meta = array_merge($meta, $overrideMeta);
+
+        $meta['user_id'] = $userId;
+
+        $url = self::DEFAULT_API_BASE."/app_notifications/".config('neptune.env')."?".http_build_query($meta);
+
+
+        $curl = new Curl();
+        $curl->setHeader('Content-Type', 'application/json');
+        $curl->setHeader('Authorization', 'Bearer '.config('neptune.token'));
+        $curl->get($url);
+
+        // dd($url);
+
+
+        if ($curl->error) {
+            // echo 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage . "\n";
+        } else {
+            // echo 'Response:' . "\n";
+            // var_dump($curl->response);
+        }
+
+        return $curl->response;
     }
 
-    public function readAppNotifications()
+    public function appNotificationMarkAsRead($type = "notification", $identifier)
     {
+
+        $url = self::DEFAULT_API_BASE."/app_notifications/".config('neptune.env')."/read";
+
+        $finalPayload = [
+            "type" => $type,
+            "id" => $identifier
+        ];
+
+        // dd($url);
+
+        $curl = new Curl();
+        $curl->setHeader('Content-Type', 'application/json');
+        $curl->setHeader('Authorization', 'Bearer '.config('neptune.token'));
+        $curl->post($url, $finalPayload);
+
+        if ($curl->error) {
+            // echo 'Error: ' . $curl->errorCode . ': ' . $curl->errorMessage . "\n";
+        } else {
+            // echo 'Response:' . "\n";
+            // var_dump($curl->response);
+        }
+
+        return $curl->response;
 
     }
 
