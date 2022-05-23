@@ -59,13 +59,13 @@ That's it. You have configured Neptune.
 
 You can read app notification which you can show to user under notifications section of your app.
 
-```
+```php
     $neptune = new Neptune();
 
     $userId = 1;
 
     $notifications = $neptune->appNotificationsGet($userId, [
-        "type" => "all"
+        "type" => "unread"
     ]);
 ```
 
@@ -77,7 +77,7 @@ Default is "unread"
 
 You can mark one particular notification as read
 
-```
+```php
     $neptune = new Neptune();
 
     $type = "notification";
@@ -88,11 +88,46 @@ You can mark one particular notification as read
 
 ## Mark All Notification as Read for an User
 
-```
+```php
     $neptune = new Neptune();
 
     $type = "user";
     $identifier = "1";
 
     $notifications = $neptune->appNotificationMarkAsRead($type,$identifier);
+```
+
+## Laravel
+
+Step 1:
+
+```php
+use Teurons\Neptune\NeptuneChannel;
+
+class ResetPasswordNotification extends Notification
+{
+    public function via($notifiable)
+    {
+        return [NeptuneChannel::class];
+    }
+
+
+    public function toNeptune($notifiable)
+    {
+        return [
+            'event_type' => 'user_requested_to_reset_password',
+            'data' => [
+                'token' => 123456
+            ],
+            'user_id' => $notifiable->id,
+            "contact_infos" => [
+                [
+                    "type" => "email",
+                    "value" => $notifiable->email
+                ]
+            ],
+        ];
+    }
+
+}
 ```
