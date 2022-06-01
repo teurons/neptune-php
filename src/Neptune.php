@@ -39,6 +39,9 @@ class Neptune
      */
     public function fire($eventType, $data, $payload)
     {
+        if(config('neptune.token') === "" || config('neptune.env') === ""){
+            return false;
+        }
 
         $finalPayload =  [
             'event_type' => $eventType,
@@ -68,6 +71,10 @@ class Neptune
 
     public function appNotificationsGet($userId, $overrideMeta = [])
     {
+
+        if(config('neptune.token') === "" || config('neptune.env') === ""){
+            return false;
+        }
 
         $meta = array(
             'per_page' => '10',
@@ -104,6 +111,9 @@ class Neptune
 
     public function appNotificationMarkAsRead($type = "notification", $identifier)
     {
+        if(config('neptune.token') === "" || config('neptune.env') === ""){
+            return false;
+        }
 
         $url = self::DEFAULT_API_BASE."/app_notifications/".config('neptune.env')."/read";
 

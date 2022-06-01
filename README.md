@@ -99,8 +99,6 @@ You can mark one particular notification as read
 
 ## Laravel
 
-Step 1:
-
 ```php
 use Teurons\Neptune\NeptuneChannel;
 
